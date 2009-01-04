@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ x = "x$SDL_CONFIG" ] ; then export SDL_CONFIG=sdl-config ; fi
+
+(echo -n 'CFLAGS:=$(CFLAGS) ' ;
+ $SDL_CONFIG --cflags ;
+
+ echo -n 'LDFLAGS:=$(LDFLAGS) ' ;
+ $SDL_CONFIG --libs
+
+ )>configuration.mak
+
