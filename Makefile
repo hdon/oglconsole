@@ -1,4 +1,4 @@
-include configuration
+include configuration.mak
 
 all : oglconsole-sdl.o #oglconsole-glut.o
 
