@@ -2,14 +2,10 @@
 
 /* This strategy seems to offer the convenience of zero-configuration, but
  * obviously it also offers defining GLHEADERINCLUDE */
-#ifdef GLHEADERINCLUDE
-#  include GLHEADERINCLUDE
+#ifdef __APPLE__
+#  include <OpenGL/gl.h>
 #else
-#  ifdef __MACH__
-#    include <OpenGL/gl.h>
-#  else
-#    include <GL/gl.h>
-#  endif
+#  include <GL/gl.h>
 #endif
 
 #include "oglconsole.h"
@@ -40,8 +36,8 @@
  * "visible" console visibility modes */
 #define SLIDE_STEPS 25
 
-GLuint OGLCONSOLE_glFontHandle = 0;
-int OGLCONSOLE_CreateFont()
+static GLuint OGLCONSOLE_glFontHandle = 0;
+static int OGLCONSOLE_CreateFont()
 {
     {int err=glGetError();if(err)printf("GL ERROR: %i\n",err);}
 #ifdef DEBUG
@@ -142,6 +138,7 @@ void OGLCONSOLE_EnterKey(void(*cbfun)(OGLCONSOLE_Console console, char *cmd))
     programConsole->enterKeyCallback = cbfun;
 }
 
+static
 void OGLCONSOLE_DefaultEnterKeyCallback(OGLCONSOLE_Console console, char *cmd)
 {
     OGLCONSOLE_Output(console,
@@ -179,8 +176,9 @@ OGLCONSOLE_Console OGLCONSOLE_Create()
     console->pMatrixUse = 1;
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
+    glLoadIdentity();
     glOrtho(0, screenWidth, 0, screenHeight, -1, 1);
-    glGetDoublev(GL_MODELVIEW_MATRIX, console->pMatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX, console->pMatrix);
     glPopMatrix();
 
     /* Initialize its modelview matrix */
@@ -188,8 +186,7 @@ OGLCONSOLE_Console OGLCONSOLE_Create()
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    glTranslated(-1, -1, 0);
-    glScaled(2,2,1);
+    glScaled(console->textWidth, console->textHeight, 1);
     glGetDoublev(GL_MODELVIEW_MATRIX, console->mvMatrix);
     glPopMatrix();
 
@@ -256,7 +253,7 @@ OGLCONSOLE_Console OGLCONSOLE_Create()
  * operations a console can be engaged in are receiving programmer interaction,
  * or receiving end-user interaction. fyi, "user" always refers to the
  * programmer, end-user refers to the real end-user) */
-void OGLCONSOLE_DestroyReal(OGLCONSOLE_Console console, int safe)
+static void OGLCONSOLE_DestroyReal(OGLCONSOLE_Console console, int safe)
 {
     free(C);
 
@@ -701,7 +698,7 @@ void OGLCONSOLE_Output(OGLCONSOLE_Console console, char *s)
 
 /* Internal encapsulation of the act for adding a command the user executed to
  * their command history for that particular console */
-void OGLCONSOLE_AddHistory(_OGLCONSOLE_Console *console, char *s)
+void OGLCONSOLE_AddHistory(OGLCONSOLE_Console console, char *s)
 {
     if (++C->historyQueueIndex >= MAX_HISTORY_COUNT)
         C->historyQueueIndex = 0;
@@ -913,7 +910,7 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
             OGLCONSOLE_YankHistory(userConsole);
 
             /* Add user's command to history */
-            OGLCONSOLE_AddHistory(userConsole, userConsole->inputLine);
+            OGLCONSOLE_AddHistory((void*)userConsole, userConsole->inputLine);
 
             /* Print user's command to the console */
             OGLCONSOLE_Output((void*)userConsole, "%s\n", userConsole->inputLine);

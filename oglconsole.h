@@ -51,6 +51,9 @@ void OGLCONSOLE_EditConsole(OGLCONSOLE_Console console);
 /* Sets the dimensions of the console in lines and columns of characters. */
 void OGLCONSOLE_SetDimensions(int width, int height);
 
+/* Use this if you want to populate console command history yourself */
+void OGLCONSOLE_AddHistory(OGLCONSOLE_Console console, char *s);
+
 /* Show or hide the console */
 void OGLCONSOLE_SetVisibility(int visible);
 
