@@ -335,12 +335,14 @@ void OGLCONSOLE_Info()
 void OGLCONSOLE_Draw() { OGLCONSOLE_Render((void*)userConsole); }
 
 /* Internal functions for drawing text. You don't want these, do you? */
-void OGLCONSOLE_DrawString(char *s, double x, double y, double w, double h,
-        double z);
-void OGLCONSOLE_DrawWrapString(char *s, double x, double y, double w, double h,
-        double z, int wrap);
-void OGLCONSOLE_DrawCharacter(int c, double x, double y, double w, double h,
-        double z);
+static void OGLCONSOLE_DrawString(char *s, double x, double y,
+                                           double w, double h, double z);
+static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
+                                               double w, double h,
+                                               double z, int wrap);
+static void OGLCONSOLE_DrawCharacter(int c, double x, double y,
+                                            double w, double h,
+                                            double z);
 
 /* This function draws a single specific console; if you only use one console in
  * your program, use Draw() instead */
@@ -482,8 +484,8 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
 }
 
 /* Issue rendering commands for a single a string */
-void OGLCONSOLE_DrawString(char *s, double x, double y, double w, double h,
-        double z)
+static void OGLCONSOLE_DrawString(char *s, double x, double y,
+                                           double w, double h, double z)
 {
     while (*s)
     {
@@ -494,8 +496,9 @@ void OGLCONSOLE_DrawString(char *s, double x, double y, double w, double h,
 }
 
 /* Issue rendering commands for a single a string */
-void OGLCONSOLE_DrawWrapString(char *s, double x, double y, double w, double h,
-        double z, int wrap)
+static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
+                                               double w, double h,
+                                               double z, int wrap)
 {
     int pos = 0;
     double X = x;
@@ -516,8 +519,8 @@ void OGLCONSOLE_DrawWrapString(char *s, double x, double y, double w, double h,
 }
 
 /* Issue rendering commands for a single character */
-void OGLCONSOLE_DrawCharacter(int c, double x, double y, double w, double h,
-        double z)
+static void OGLCONSOLE_DrawCharacter(int c, double x, double y,
+                                            double w, double h, double z)
 {
 //  static int message = 0;
     double cx, cy, cX, cY;
@@ -696,8 +699,11 @@ void OGLCONSOLE_Output(OGLCONSOLE_Console console, char *s)
 }
 #endif
 
-/* Internal encapsulation of the act for adding a command the user executed to
- * their command history for that particular console */
+/* Adds a command to the console's command history, as though the user had
+ * entered the command themselves, so it appears when they use up/down keys.
+ * Use this if you want to populate the command history yourself, like with
+ * a .bash_history file sort of thing.
+ */
 void OGLCONSOLE_AddHistory(OGLCONSOLE_Console console, char *s)
 {
     if (++C->historyQueueIndex >= MAX_HISTORY_COUNT)
@@ -706,7 +712,11 @@ void OGLCONSOLE_AddHistory(OGLCONSOLE_Console console, char *s)
     strcpy(C->history[C->historyQueueIndex], s);
 }
 
-void OGLCONSOLE_YankHistory(_OGLCONSOLE_Console *console)
+/* Internal function that must be called once the user begins editing a line
+ * from the console's command history. This copies it out of the history
+ * and into the current command line buffer.
+ */
+static void OGLCONSOLE_YankHistory(_OGLCONSOLE_Console *console)
 {
     /* First we have to see if we are browsing our command history */
     if (console->historyScrollIndex != -1)
