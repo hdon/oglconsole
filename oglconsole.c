@@ -391,7 +391,6 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
         double d = (C->transitionComplete - t) / (double)SLIDE_MS;
         if (!C->visible)
           d = 1 - d;
-        printf("sliding, %lf\n", d);
         glTranslated(0, d, 0);
       } else {
         C->transitionComplete = 0;
