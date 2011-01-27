@@ -15,6 +15,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef OGLCONSOLE_USE_SDL
+#  define OGLCONSOLE_SLIDE
+#endif
+
 #define C ((_OGLCONSOLE_Console*)console)
 
 /* OGLCONSOLE font */
@@ -29,13 +33,14 @@
 
 /* This is how long the animation should take to make the transition between
  * "hidden" and "visible" console visibility modes (expressed in milliseconds) */
-#define SLIDE_MS 700
+#define SLIDE_MS 230
 
 /* If we don't know how to retrieve the time then we can just use a number of
  * frames to divide up the time it takes to transition between "hidden" and
  * "visible" console visibility modes */
 #define SLIDE_STEPS 25
 
+static GLdouble screenWidth, screenHeight;
 static GLuint OGLCONSOLE_glFontHandle = 0;
 static int OGLCONSOLE_CreateFont()
 {
@@ -118,8 +123,11 @@ typedef struct
     /* Width and height of a single character for the GL */
     GLdouble characterWidth, characterHeight;
     
-    /* Basic options */
-    int visibility;
+    /* 1 if visible or "sliding in," 0 if hidden or "sliding away" */
+    int visible;
+    /* This is the time the console should become fully visible or fully hidden.
+     * If it's 0, we can assume the transition is complete. */
+    unsigned int transitionComplete;
 
     /* Various callback functions defined by the user */
     void(*enterKeyCallback)(OGLCONSOLE_Console console, char *cmd);
@@ -149,7 +157,6 @@ OGLCONSOLE_Console OGLCONSOLE_Create()
 {
     _OGLCONSOLE_Console *console;
     GLint viewport[4];
-    GLdouble screenWidth, screenHeight;
 
     /* If font hasn't been created, we create it */
     if (!glIsTexture(OGLCONSOLE_glFontHandle))
@@ -220,7 +227,8 @@ OGLCONSOLE_Console OGLCONSOLE_Create()
     console->enterKeyCallback = OGLCONSOLE_DefaultEnterKeyCallback;
 
     /* The console starts life invisible */
-    console->visibility = 0;
+    console->visible = 0;
+    console->transitionComplete = 0;
 
     /* If no consoles existed before, we select this one for convenience */
     if (!programConsole) programConsole = console;
@@ -321,7 +329,7 @@ void OGLCONSOLE_EditConsole(OGLCONSOLE_Console console) { programConsole = C; }
 /* Show or hide a console */
 void OGLCONSOLE_SetVisibility(int visible)
 {
-    programConsole->visibility = visible != 0;
+    programConsole->visible = visible ? -1 : 0;
 }
 
 /* Get current configuration information about a console */
@@ -349,7 +357,7 @@ static void OGLCONSOLE_DrawCharacter(int c, double x, double y,
 void OGLCONSOLE_Render(OGLCONSOLE_Console console)
 {
     /* Don't render hidden console */
-    if (C->visibility == 0) return;
+    if (C->visible == 0 && C->transitionComplete == 0) return;
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -370,6 +378,23 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
      * oglconsole) already exists; you'd want depth testing in that case */
     glDisable(GL_DEPTH_TEST);
 
+    /* With SDL, we have SDL_GetTicks(), so we can do a slide transition */
+#ifdef OGLCONSOLE_SLIDE
+    if (C->transitionComplete) {
+      unsigned int t = SDL_GetTicks();
+      if (t < C->transitionComplete) {
+        double d = (C->transitionComplete - t) / (double)SLIDE_MS;
+        if (!C->visible)
+          d = 1 - d;
+        printf("sliding, %lf\n", d);
+        glTranslated(0, d, 0);
+      } else {
+        C->transitionComplete = 0;
+      }
+    }
+#endif
+
+#if 0
     /* Render hiding / showing console in a special manner. Zero means hidden. 1
      * means visible. All other values are traveling toward zero or one. TODO:
      * Make this time dependent */
@@ -393,6 +418,7 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
         d = 0.04 * v;
         glTranslated(0, 1-d, 0);
     }
+#endif
 
     /* First we draw our console's background TODO: Add something fancy? */
     glDisable(GL_TEXTURE_2D);
@@ -778,14 +804,17 @@ void OGLCONSOLE_SetInputLine(const char *inputLine)
 int OGLCONSOLE_SDLEvent(SDL_Event *e)
 {
     /* If the terminal is hidden we only check for show/hide key */
-    if (userConsole->visibility < 1)
+    if (!userConsole->visible)
     {
         if (e->type == SDL_KEYDOWN && e->key.keysym.sym == '`')
         {  
             // TODO: Fetch values from OS?
             // TODO: Expose them to the program
             SDL_EnableKeyRepeat(250, 30);
-            userConsole->visibility += SLIDE_STEPS;
+            userConsole->visible = 1;
+#ifdef OGLCONSOLE_SLIDE
+            userConsole->transitionComplete = SDL_GetTicks() + SLIDE_MS;
+#endif
             return 1;
         }
         
@@ -809,7 +838,10 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
         if (e->key.keysym.sym == '`')
         {
             /* Tell console to slide into closing */
-            userConsole->visibility -= SLIDE_STEPS;
+            userConsole->visible = 0;
+#ifdef OGLCONSOLE_SLIDE
+            userConsole->transitionComplete = SDL_GetTicks() + SLIDE_MS;
+#endif
 
             /* Disable key repeat */
             SDL_EnableKeyRepeat(0, 0);
