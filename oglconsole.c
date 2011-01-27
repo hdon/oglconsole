@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #ifdef OGLCONSOLE_USE_SDL
 #  define OGLCONSOLE_SLIDE
@@ -171,8 +172,8 @@ OGLCONSOLE_Console OGLCONSOLE_Create()
     console->textHeight = viewport[3] / CHAR_PIXEL_H;
     screenWidth = (GLdouble)viewport[2] / (GLdouble)CHAR_PIXEL_W;
     screenHeight = (GLdouble)viewport[3] / (GLdouble)CHAR_PIXEL_H;
-    console->characterWidth = 1.0 / screenWidth;
-    console->characterHeight = 1.0 / screenHeight;
+    console->characterWidth = 1.0 / floor(screenWidth);
+    console->characterHeight = 1.0 / floor(screenHeight);
 
     /* Different values have different meanings for xMatrixUse:
         0) Do not change the matrix before rendering
