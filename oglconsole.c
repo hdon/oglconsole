@@ -332,6 +332,10 @@ void OGLCONSOLE_SetVisibility(int visible)
 {
     programConsole->visible = visible ? -1 : 0;
 }
+/* Query console visibility */
+int OGLCONSOLE_GetVisibility() {
+    return programConsole->visible;
+}
 
 /* Get current configuration information about a console */
 void OGLCONSOLE_Info()

@@ -56,6 +56,8 @@ void OGLCONSOLE_AddHistory(OGLCONSOLE_Console console, char *s);
 
 /* Show or hide the console */
 void OGLCONSOLE_SetVisibility(int visible);
+/* Query console visibility */
+int OGLCONSOLE_GetVisibility();
 
 #ifdef __cplusplus
 }
