@@ -852,7 +852,6 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
             return 1;
         }
         
-        /* TODO: Find out how to handle CAPSLOCK */
         if (e->key.keysym.sym >= ' ' && e->key.keysym.sym <= '~')
         {
             int k = e->key.keysym.sym;
