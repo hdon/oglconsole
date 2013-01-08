@@ -650,7 +650,6 @@ void OGLCONSOLE_Output(OGLCONSOLE_Console console, const char *s, ...)
             const int TAB_WIDTH = 8;
 
             int n = (consoleCursor - (C->lines + lineQueueIndex * textWidth)) % TAB_WIDTH;
-            printf("column: %i\n", n);
 
             /* Are we indenting our way off the edge of the screen? */
             if (textWidth - n <= TAB_WIDTH)
