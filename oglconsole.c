@@ -352,7 +352,7 @@ static void OGLCONSOLE_DrawString(char *s, double x, double y,
 static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
                                                double w, double h,
                                                double z, int wrap);
-static void OGLCONSOLE_DrawCharacter(int c, double x, double y,
+static void OGLCONSOLE_DrawCharacter(unsigned char c, double x, double y,
                                             double w, double h,
                                             double z);
 
@@ -550,7 +550,7 @@ static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
 }
 
 /* Issue rendering commands for a single character */
-static void OGLCONSOLE_DrawCharacter(int c, double x, double y,
+static void OGLCONSOLE_DrawCharacter(unsigned char c, double x, double y,
                                             double w, double h, double z)
 {
 //  static int message = 0;
