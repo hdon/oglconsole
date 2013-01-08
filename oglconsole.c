@@ -241,13 +241,13 @@ OGLCONSOLE_Console OGLCONSOLE_Create()
     OGLCONSOLE_Output((void*)console, "Console initialized\n");
 
     OGLCONSOLE_Output((void*)console,
-            "Console display lines: %i\n", console->textHeight);
+            "Console display lines:\t\t%i\n", console->textHeight);
 
     OGLCONSOLE_Output((void*)console,
-            "Console display columns: %i\n", console->textWidth);
+            "Console display columns:\t%i\n", console->textWidth);
 
     OGLCONSOLE_Output((void*)console,
-            "Console input length: %i\n", MAX_INPUT_LENGTH);
+            "Console input length:\t\t%i\n", MAX_INPUT_LENGTH);
 
 
     /* Return the opaque pointer to the programmer */
@@ -647,7 +647,7 @@ void OGLCONSOLE_Output(OGLCONSOLE_Console console, const char *s, ...)
         {
             const int TAB_WIDTH = 8;
 
-            int n = consoleCursor - (C->lines + lineQueueIndex * textWidth);
+            int n = (consoleCursor - (C->lines + lineQueueIndex * textWidth)) % TAB_WIDTH;
             printf("column: %i\n", n);
 
             /* Are we indenting our way off the edge of the screen? */
