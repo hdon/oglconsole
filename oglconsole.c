@@ -393,6 +393,8 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
         glTranslated(0, d, 0);
       } else {
         C->transitionComplete = 0;
+        if (!C->visible)
+          return;
       }
     }
 #endif
