@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#define min(a,b) ((a)<(b)?(a):(b))
 #ifdef OGLCONSOLE_USE_SDL
 #  define OGLCONSOLE_SLIDE
 #endif
@@ -23,14 +24,12 @@
 #define C ((_OGLCONSOLE_Console*)console)
 
 /* OGLCONSOLE font */
-#include "ConsoleFont.c"
-#define FIRST_CHARACTER ' '
-#define LAST_CHARACTER  '~'
+#include "font850.c"
 
-#define CHAR_PIXEL_W 6
-#define CHAR_PIXEL_H 13
-#define CHAR_WIDTH 0.0234375 /* ogl tex coords */
-#define CHAR_HEIGHT 0.203125 /* ogl tex coords */
+#define CHAR_PIXEL_W 8
+#define CHAR_PIXEL_H 8
+#define CHAR_WIDTH (1.0/16.0) /* ogl tex coords */
+#define CHAR_HEIGHT (1.0/16.0) /* ogl tex coords */
 
 /* This is how long the animation should take to make the transition between
  * "hidden" and "visible" console visibility modes (expressed in milliseconds) */
@@ -494,7 +493,7 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
 
             /* Draw cursor beige */
             glColor3d(1,1,.5);
-            OGLCONSOLE_DrawCharacter('_'-' ',
+            OGLCONSOLE_DrawCharacter('_',
                     C->inputCursorPos * C->characterWidth, 0,
                     C->characterWidth,
                     C->characterHeight,
@@ -519,7 +518,7 @@ static void OGLCONSOLE_DrawString(char *s, double x, double y,
 {
     while (*s)
     {
-        OGLCONSOLE_DrawCharacter(*s-' ', x, y, w, h, z);
+        OGLCONSOLE_DrawCharacter(*s, x, y, w, h, z);
         s++;
         x += w;
     }
@@ -535,7 +534,7 @@ static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
 
     while (*s)
     {
-        OGLCONSOLE_DrawCharacter(*s-' ', X, y, w, h, z);
+        OGLCONSOLE_DrawCharacter(*s, X, y, w, h, z);
         s++;
         X += w;
 
@@ -554,15 +553,12 @@ static void OGLCONSOLE_DrawCharacter(int c, double x, double y,
 {
 //  static int message = 0;
     double cx, cy, cX, cY;
-    
-//    if (c < FIRST_CHARACTER || c > LAST_CHARACTER)
-//        c = (c - FIRST_CHARACTER) % (LAST_CHARACTER - FIRST_CHARACTER);
-//    else c -= FIRST_CHARACTER;
 
-    cx = (c % 42) * CHAR_WIDTH;
-    cy = 1.0 - (c / 42) * CHAR_HEIGHT;
+    cx = (c % 16) * CHAR_WIDTH;
     cX = cx + CHAR_WIDTH;
-    cY = 1.0 - (c / 42 + 1) * CHAR_HEIGHT;
+
+    cY = (c / 16) * CHAR_HEIGHT;
+    cy = cY + CHAR_HEIGHT;
 
 /*  if (message != c)
     {
@@ -697,7 +693,7 @@ void OGLCONSOLE_Output(OGLCONSOLE_Console console, const char *s, ...)
 
 /* Mono-Console Users: print text to the console; multi-console users use
  * Output() */
-void OGLCONSOLE_Print(char *s, ...)
+void OGLCONSOLE_Print(const char *s, ...)
 {
     va_list argument;
     char output[4096];
@@ -974,7 +970,7 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
         // Page up key
         else if (e->key.keysym.sym == KEY_PAGEUP)
         {
-            userConsole->lineScrollIndex -= userConsole->textHeight / 2;
+            userConsole->lineScrollIndex -= min(userConsole->textHeight / 2, 5);
 
             if (userConsole->lineScrollIndex < 0)
                 userConsole->lineScrollIndex += userConsole->maxLines;
@@ -985,7 +981,7 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
         // Page down key
         else if (e->key.keysym.sym == KEY_PAGEDOWN)
         {
-            userConsole->lineScrollIndex += userConsole->textHeight / 2;
+            userConsole->lineScrollIndex += min(userConsole->textHeight / 2, 5);
 
             if (userConsole->lineScrollIndex >= userConsole->maxLines)
                 userConsole->lineScrollIndex -= userConsole->maxLines;
