@@ -1,6 +1,5 @@
-What follows is the old README file. Apparently the claim of "never fail" is not entirely true. I'll be working toward fixing that, and then I'll remove this message.
-
-
+TODO: Better documentation (there isn't that much to document really!)
+Until then check the source :)
 
 Licensed under the GNU GPL 2.
 
@@ -54,3 +53,11 @@ console. Functions which operate on consoles do not specify the console
 they are to operate on within their parameters. Instead, a separate
 function is used to select a console, and all subsequent console
 operations are directed toward that console.
+
+
+******************************* Branch: sdl2-dev *******************************
+
+Here is an example configuration.mak file for sdl2-dev branch:
+
+ CFLAGS:=$(CFLAGS) -I/usr/local/include/SDL2 -D_GNU_SOURCE=1 -D_REENTRANT -ggdb3 -gstabs+
+ LDFLAGS:=$(LDFLAGS) -L/usr/local/lib -lSDL2
