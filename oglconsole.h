@@ -6,6 +6,8 @@
 #ifdef OGLCONSOLE_USE_SDL
 #include <SDL.h>
 #endif
+/* TODO evaluate! */
+#include <GL/gl.h>
 
 /* Opaque to you you lowly user */
 typedef struct _OGLCONSOLE_Console *OGLCONSOLE_Console;
@@ -58,6 +60,17 @@ void OGLCONSOLE_AddHistory(OGLCONSOLE_Console console, char *s);
 void OGLCONSOLE_SetVisibility(int visible);
 /* Query console visibility */
 int OGLCONSOLE_GetVisibility();
+
+/* TODO evaluate this decision! */
+extern GLuint OGLCONSOLE_glFontHandle;
+void OGLCONSOLE_DrawString(const char *s, double x, double y,
+                                    double w, double h, double z);
+void OGLCONSOLE_DrawWrapString(const char *s, double x, double y,
+                                        double w, double h,
+                                        double z, int wrap);
+void OGLCONSOLE_DrawCharacter(unsigned char c, double x, double y,
+                                     double w, double h,
+                                     double z);
 
 #ifdef __cplusplus
 }

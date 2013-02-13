@@ -41,7 +41,7 @@
 #define SLIDE_STEPS 25
 
 static GLdouble screenWidth, screenHeight;
-static GLuint OGLCONSOLE_glFontHandle = 0;
+GLuint OGLCONSOLE_glFontHandle = 0;
 static int OGLCONSOLE_CreateFont()
 {
     {int err=glGetError();if(err)printf("GL ERROR: %i\n",err);}
@@ -347,14 +347,14 @@ void OGLCONSOLE_Info()
 void OGLCONSOLE_Draw() { OGLCONSOLE_Render((void*)userConsole); }
 
 /* Internal functions for drawing text. You don't want these, do you? */
-static void OGLCONSOLE_DrawString(char *s, double x, double y,
-                                           double w, double h, double z);
-static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
-                                               double w, double h,
-                                               double z, int wrap);
-static void OGLCONSOLE_DrawCharacter(unsigned char c, double x, double y,
-                                            double w, double h,
-                                            double z);
+void OGLCONSOLE_DrawString(const char *s, double x, double y,
+                                    double w, double h, double z);
+void OGLCONSOLE_DrawWrapString(const char *s, double x, double y,
+                                        double w, double h,
+                                        double z, int wrap);
+void OGLCONSOLE_DrawCharacter(unsigned char c, double x, double y,
+                                     double w, double h,
+                                     double z);
 
 /* This function draws a single specific console; if you only use one console in
  * your program, use Draw() instead */
@@ -393,35 +393,18 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
         glTranslated(0, d, 0);
       } else {
         C->transitionComplete = 0;
-        if (!C->visible)
+        if (!C->visible) {
+          /* Relinquish our rendering settings */
+          glMatrixMode(GL_PROJECTION);
+          glPopMatrix();
+
+          glMatrixMode(GL_MODELVIEW);
+          glPopMatrix();
+
+          glPopAttrib();
           return;
+        }
       }
-    }
-#endif
-
-#if 0
-    /* Render hiding / showing console in a special manner. Zero means hidden. 1
-     * means visible. All other values are traveling toward zero or one. TODO:
-     * Make this time dependent */
-    if (C->visibility != 1)
-    {
-        double d; /* bra size */
-        int v = C->visibility;
-
-        /* Count down in both directions */
-        if (v < 0)
-        {
-            v ^= -1;
-            C->visibility++;
-        }
-        else
-        {
-            v = SLIDE_STEPS - v;
-            C->visibility--;
-        }
-
-        d = 0.04 * v;
-        glTranslated(0, 1-d, 0);
     }
 #endif
 
@@ -515,7 +498,7 @@ void OGLCONSOLE_Render(OGLCONSOLE_Console console)
 }
 
 /* Issue rendering commands for a single a string */
-static void OGLCONSOLE_DrawString(char *s, double x, double y,
+void OGLCONSOLE_DrawString(const char *s, double x, double y,
                                            double w, double h, double z)
 {
     while (*s)
@@ -527,7 +510,7 @@ static void OGLCONSOLE_DrawString(char *s, double x, double y,
 }
 
 /* Issue rendering commands for a single a string */
-static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
+void OGLCONSOLE_DrawWrapString(const char *s, double x, double y,
                                                double w, double h,
                                                double z, int wrap)
 {
@@ -550,7 +533,7 @@ static void OGLCONSOLE_DrawWrapString(char *s, double x, double y,
 }
 
 /* Issue rendering commands for a single character */
-static void OGLCONSOLE_DrawCharacter(unsigned char c, double x, double y,
+void OGLCONSOLE_DrawCharacter(unsigned char c, double x, double y,
                                             double w, double h, double z)
 {
 //  static int message = 0;
@@ -801,7 +784,12 @@ void OGLCONSOLE_SetInputLine(const char *inputLine)
 #define MOD_SHIFT           KMOD_SHIFT
 #define MOD_CTRL            KMOD_CTRL
 // Is KMOD_MODE scroll-lock? what to do about KMOD_RESERVED?
-#define MOD_REJECT          (KMOD_ALT|KMOD_META|KMOD_MODE)
+
+// XXX TODO SDL2
+// KMOD_META is not defined by my SDL2 headers
+//#define MOD_REJECT          (KMOD_ALT|KMOD_META|KMOD_MODE)
+#define MOD_REJECT          (KMOD_ALT|KMOD_MODE)
+
 int OGLCONSOLE_SDLEvent(SDL_Event *e)
 {
     /* If the terminal is hidden we only check for show/hide key */
@@ -811,7 +799,9 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
         {  
             // TODO: Fetch values from OS?
             // TODO: Expose them to the program
-            SDL_EnableKeyRepeat(250, 30);
+
+            // XXX TODO SDL2: This function is not in my SDL2 headers or libs
+            //SDL_EnableKeyRepeat(250, 30);
             userConsole->visible = 1;
 #ifdef OGLCONSOLE_SLIDE
             userConsole->transitionComplete = SDL_GetTicks() + SLIDE_MS;
@@ -845,7 +835,8 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
 #endif
 
             /* Disable key repeat */
-            SDL_EnableKeyRepeat(0, 0);
+            // XXX TODO SDL2: This function is not in my SDL2 headers or libs
+            //SDL_EnableKeyRepeat(0, 0);
             return 1;
         }
         
