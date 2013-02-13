@@ -59,5 +59,5 @@ operations are directed toward that console.
 
 Here is an example configuration.mak file for sdl2-dev branch:
 
- CFLAGS:=$(CFLAGS) -I/usr/local/include/SDL2 -D_GNU_SOURCE=1 -D_REENTRANT -ggdb3 -gstabs+
+ CFLAGS:=$(CFLAGS) -I/usr/local/include/SDL2 -D_GNU_SOURCE=1 -D_REENTRANT
  LDFLAGS:=$(LDFLAGS) -L/usr/local/lib -lSDL2
