@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#define min(a,b) ((a)<(b)?(a):(b))
 #ifdef OGLCONSOLE_USE_SDL
 #  define OGLCONSOLE_SLIDE
 #endif
@@ -974,7 +975,7 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
         // Page up key
         else if (e->key.keysym.sym == KEY_PAGEUP)
         {
-            userConsole->lineScrollIndex -= userConsole->textHeight / 2;
+            userConsole->lineScrollIndex -= min(userConsole->textHeight / 2, 5);
 
             if (userConsole->lineScrollIndex < 0)
                 userConsole->lineScrollIndex += userConsole->maxLines;
@@ -985,7 +986,7 @@ int OGLCONSOLE_SDLEvent(SDL_Event *e)
         // Page down key
         else if (e->key.keysym.sym == KEY_PAGEDOWN)
         {
-            userConsole->lineScrollIndex += userConsole->textHeight / 2;
+            userConsole->lineScrollIndex += min(userConsole->textHeight / 2, 5);
 
             if (userConsole->lineScrollIndex >= userConsole->maxLines)
                 userConsole->lineScrollIndex -= userConsole->maxLines;
